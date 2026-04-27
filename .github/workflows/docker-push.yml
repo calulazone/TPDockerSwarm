@@ -78,3 +78,15 @@ jobs:
             -c docker-stack.yml \
             --with-registry-auth \
             tp-swarm
+
+      - name: Wait for deployment
+        run: sleep 30
+
+      - name: Check deployment status
+        run: |
+          echo "=== Services ==="
+          docker service ls
+          echo "=== Tasks ==="
+          docker service ps tp-swarm_api
+          echo "=== Logs ==="
+          docker service logs tp-swarm_api --tail 20

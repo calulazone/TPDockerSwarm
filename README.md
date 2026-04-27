@@ -91,12 +91,13 @@ GitHub Actions
 
 **GitHub Actions -> Docker Hub**
 - Access Token Docker Hub stocké dans GitHub Secrets (`DOCKERHUB_TOKEN`)
+- Username Docker Hub (`DOCKERHUB_USERNAME`)
 
 **GitHub Actions -> VM Swarm**
-- Paire de clés SSH 
-- Clé privée dans GitHub Secrets (`SSH_PRIVATE_KEY`)
-- Clé publique dans `~/.ssh/authorized_keys` sur la VM
-- Connexion réseau via Tailscale
+- Authkey Tailscale (`TAILSCALE_AUTHKEY`)
+- Clé privée SSH (`SSH_PRIVATE_KEY`)
+- Host SSH (`SSH_HOST`, ex: IP ou domaine de la VM)
+- Clé publique dans `~/.ssh/authorized_keys` sur la VM (utilisateur `vboxuser`)
 
 **Swarm -> Docker Hub**
 - Registre public
@@ -132,3 +133,11 @@ Dans le sens inverse, la VM devrait exposer une API accessible
 depuis GitHub, ce qui augmente la surface d'attaque.
 
 On préfère donc que la CI pousse vers la VM.
+
+## Partie E - Définir une stack Swarm
+
+- **Comment Swarm gère-t-il un rolling update ?**  
+  Swarm effectue un rolling update en remplaçant les conteneurs un par un (ou par lots selon le paramètre `parallelism`). Pour chaque conteneur, il arrête l'ancien, démarre le nouveau avec la nouvelle image, attend que le healthcheck passe, puis passe au suivant.
+
+- **Que se passe-t-il si le healthcheck échoue pendant l’update ?**  
+  Si le healthcheck échoue pendant l'update, Swarm peut soit rollback (revenir à l'ancienne version) si `failure_action` est défini à `rollback`, soit pause l'update si défini à `pause`, ou continuer selon la configuration. Dans notre cas, `failure_action: rollback` permet de revenir automatiquement à la version précédente en cas d'échec.
