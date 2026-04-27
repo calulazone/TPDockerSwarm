@@ -17,7 +17,6 @@ COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
 # Copie des fichiers
 COPY --chown=nextjs:nodejs package*.json ./
 COPY --chown=nextjs:nodejs server.js ./
-COPY --chown=nextjs:nodejs .env ./
 
 ENV NODE_ENV=production
 USER nextjs
