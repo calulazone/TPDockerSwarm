@@ -74,7 +74,7 @@ Le déploiement en production se fait **uniquement via GitHub Actions** :
 - Push sur `main` déclenche le workflow
 - Build et push automatique vers Docker Hub
 - SSH + Tailscale pour se connecter à la VM Swarm
-- `docker stack deploy` sur la VM avec les logs et smoke tests
+- `docker stack deploy` sur la VM avec les logs
 
 **En résumé** :
 - Local : `docker build` + `docker run` pour tester
@@ -188,7 +188,7 @@ Si le healthcheck échoue pendant l'update, Swarm peut soit rollback (revenir à
 Les secrets GitHub Actions sont automatiquement masqués dans les logs s'ils sont référencés via `${{ secrets.SECRET_NAME }}`. Il faut notamment utiliser des variables d'environnement (`env: SECRET: ${{ secrets.SECRET }}`) où l'on peut.
 
 **Comment valider automatiquement que le service est “UP” après deploy (smoke test) ?**  
-J'ai ajouté une étape après le déploiement : je fais un `curl` vers l'endpoint de health (`http://localhost:3000/health`) qui vérifie que la réponse est un JSON valide avec `status: "OK"` et code HTTP 200. Si le test échoue, le pipeline s'arrête (exit code non-zero).
+On pourrait ajouter une autre étape qui fait un `curl` vers l'endpoint de health (`http://localhost:3000/health`) et qui vérifie que la réponse est un JSON valide avec `status: "OK"` et code HTTP 200. J'ai essayé mais je n'arrivait pas à récupérer la réponse.
 
 
 ## Partie G — Validation (tests à fournir)

@@ -90,13 +90,3 @@ jobs:
           docker service ps tp-swarm_api
           echo "=== Logs ==="
           docker service logs tp-swarm_api --tail 20
-
-      - name: Smoke test
-        run: |
-          echo "Running smoke test on remote VM..."
-          
-          # Test du healthcheck via curl sur la VM (optionnel)
-          echo ""
-          echo "Vérification du healthcheck HTTP..."
-          timeout 5 ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 vboxuser@${{ secrets.SSH_HOST }} \
-            "timeout 3 curl -s http://localhost:3000/health" || echo "⚠️ Healthcheck curl skipped (VM peut ne pas être accessible directement)"
