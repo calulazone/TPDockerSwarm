@@ -17,6 +17,18 @@ Les fichiers à ignorer sont :
 On peut par exécuter une commande et regarder ensuite la présence de ces artefacts. ```bash docker run --rm -it mon-image sh```.
 On pourrait également utiliser un outil spécialisé comme Dive.
 
+#### Quelle stratégie de tags adoptez-vous : latest, SHA, semver ?
+On utilise latest et sha, latest pour développer/tester et sha pour déployer sur Swarm
+
+#### Pourquoi un tag immuable est préférable pour un déploiement fiable ?
+Un tag immuable comme le SHA garantit que chaque nœud Swarm pull exactement la même image, peu importe le moment. Cela rend les déploiements reproductibles et les rollbacks précis.
+
+
+
+
+
+
+
 ### API Endpoints
 
 - `GET /` : Retourne le hostname du conteneur au format JSON
