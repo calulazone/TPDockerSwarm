@@ -28,9 +28,28 @@ jobs:
             calulazone/tp-docker-swarm:latest
             calulazone/tp-docker-swarm:${{ github.sha }}
 
-  deploy:
+  test:
     runs-on: ubuntu-latest
     needs: build-and-push
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
 
     steps:
       - name: Tailscale
