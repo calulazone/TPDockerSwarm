@@ -7,11 +7,13 @@ const PORT = process.env.PORT || 8000;
 
 // GET / : renvoie le hostname du conteneur (format JSON)
 app.get('/', (req, res) => {
+  console.log(`[${new Date().toISOString()}] GET / from ${req.ip}`);
   res.json({ hostname: os.hostname() });
 });
 
 // GET /health : renvoie un statut OK exploitable pour des probes
 app.get('/health', (req, res) => {
+  console.log(`[${new Date().toISOString()}] GET /health from ${req.ip}`);
   res.status(200).json({ status: 'OK' });
 });
 
