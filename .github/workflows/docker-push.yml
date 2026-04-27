@@ -52,18 +52,29 @@ jobs:
     needs: test
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Tailscale
         uses: tailscale/github-action@v2
         with:
           authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
 
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create Docker context
+        run: |
+          docker context create swarm --docker "host=ssh://vboxuser@${{ secrets.SSH_HOST }}"
+          docker context use swarm
+
       - name: Deploy to Swarm
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            docker service update \
-              --image calulazone/tp-docker-swarm:${{ github.sha }} \
-              tp-docker-swarm
+        run: |
+          docker stack deploy \
+            -c docker-stack.yml \
+            --with-registry-auth \
+            tp-swarm

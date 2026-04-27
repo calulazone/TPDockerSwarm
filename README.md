@@ -1,5 +1,5 @@
 
-### Partie A
+## Partie A
 
 #### Comment récupérez-vous le hostname dans Node.js ?
 On récupère le hostname de cette façon : ```bash os.hostname()```
@@ -66,9 +66,69 @@ docker-compose up -d
 docker-compose down
 ```
 
-#### Fonctionnalités Docker
 
-- **Multi-stage build** : Optimisation de la taille de l'image
-- **Utilisateur non-root** : Sécurité renforcée
-- **Health check intégré** : Vérification automatique de la santé du conteneur
-- **Port configurable** : Via la variable d'environnement `PORT` (actuellement 3000)
+## Partie D
+
+```
+GitHub (push main)
+        |
+        v
+GitHub Actions
+        |
+        |-- 1. Build & Push --> Docker Hub
+        |-- 2. Tests Jest
+        |-- 3. SSH via Tailscale --> VM Swarm
+                                        |
+                                        v
+                                docker service update
+                                        |
+                                        v
+                                pull image depuis Docker Hub
+                                service tourne sur port 3000
+```
+
+## Authentification
+
+**GitHub Actions -> Docker Hub**
+- Access Token Docker Hub stocké dans GitHub Secrets (`DOCKERHUB_TOKEN`)
+
+**GitHub Actions -> VM Swarm**
+- Paire de clés SSH 
+- Clé privée dans GitHub Secrets (`SSH_PRIVATE_KEY`)
+- Clé publique dans `~/.ssh/authorized_keys` sur la VM
+- Connexion réseau via Tailscale
+
+**Swarm -> Docker Hub**
+- Registre public
+
+## Ports exposés
+
+| Port | Service | Exposition |
+|------|---------|------------|
+| 3000 | Application Node.js | Swarm ingress |
+| 22 | SSH | Tailscale uniquement |
+
+## Risques et mitigations
+
+| Risque | Mitigation |
+|--------|------------|
+| Secrets dans l'image | `.dockerignore` + variables injectées au runtime |
+| Tag `latest` mutable | Déploiement par SHA de commit |
+| SSH exposé publiquement | SSH accessible via Tailscale uniquement |
+| Conteneur en root | User non-root `nextjs` (uid 1001) |
+
+## Pourquoi exposer Docker en TCP sans TLS est dangereux
+
+Si le daemon Docker est exposé en TCP sans TLS,
+n'importe qui pouvant atteindre ce port obtient un accès root complet à la machine,
+sans aucune authentification.
+
+## Runner atteint le manager vs Manager atteint le runner
+
+Dans notre approche, c'est le runner GitHub Actions qui initie la connexion SSH
+vers la VM. La VM n'expose aucun port public et n'a pas besoin de connaître GitHub.
+
+Dans le sens inverse, la VM devrait exposer une API accessible
+depuis GitHub, ce qui augmente la surface d'attaque.
+
+On préfère donc que la CI pousse vers la VM.
